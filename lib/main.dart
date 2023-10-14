@@ -14,7 +14,6 @@ class AppContent extends StatelessWidget {
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange)
         ),
-        home: Scaffold(
-            body: GraphicalEditor()));
+        home:  GraphicalEditorApp());
   }
 }
