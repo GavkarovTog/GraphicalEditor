@@ -141,16 +141,23 @@ class BSplineTool implements ToolBehaviour {
   void supportPaint(List<Point> points, Arguments arguments) {
     if (arguments.get("cycled")) {
       List<Offset> supportPoints = arguments.get("points");
-      for (int i = 0; i < supportPoints.length; i ++) {
-        if (i != supportPoints.length - 1) {
-          points.add(Point.vec2cb(
-              supportPoints[i].dx.toInt(), supportPoints[i].dy.toInt(),
-              Colors.redAccent, 10));
-        } else {
-          points.add(Point.vec2cb(
-              supportPoints[i].dx.toInt(), supportPoints[i].dy.toInt(),
-              Colors.blueAccent, 10));
-        }
+      // for (int i = 0; i < supportPoints.length; i ++) {
+      //   if (i != supportPoints.length - 1) {
+      //     points.add(Point.vec2cb(
+      //         supportPoints[i].dx.toInt(), supportPoints[i].dy.toInt(),
+      //         Colors.redAccent, 10));
+      //   } else {
+      //     points.add(Point.vec2cb(
+      //         supportPoints[i].dx.toInt(), supportPoints[i].dy.toInt(),
+      //         Colors.blueAccent, 10));
+      //   }
+      // }
+
+      if (supportPoints.isNotEmpty) {
+        points.add(Point.vec2cb(
+            supportPoints[supportPoints.length - 1].dx.toInt(),
+            supportPoints[supportPoints.length - 1].dy.toInt(),
+            Colors.blueAccent, 10));
       }
     }
   }
@@ -168,20 +175,144 @@ class BSplineTool implements ToolBehaviour {
               supportPoints[(i + 2) % supportPoints.length]
           ));
     }
+  }
+}
 
-    if (arguments.get("closured")) {
-      int lastIndex = supportPoints.length - 1;
-      int closureIndex = arguments.get("closure_index");
+class GrahamTool implements ToolBehaviour {
+  @override
+  void supportPaint(List<Point> points, Arguments arguments) {
+    if (arguments.get("cycled")) {
+      List<Offset> supportPoints = arguments.get("points");
+      for (int i = 0; i < supportPoints.length; i ++) {
+        if (i != supportPoints.length - 1) {
+          points.add(Point.vec2cb(
+              supportPoints[i].dx.toInt(), supportPoints[i].dy.toInt(),
+              Colors.redAccent, 10));
+        } else {
+          points.add(Point.vec2cb(
+              supportPoints[i].dx.toInt(), supportPoints[i].dy.toInt(),
+              Colors.blueAccent, 10));
+        }
+      }
 
-      points.addAll(
-        getBSplinePoints(
-          supportPoints[lastIndex],
-          supportPoints[0],
-          supportPoints[closureIndex],
-          supportPoints[closureIndex + 1]
-        )
-      );
+      if (supportPoints.isNotEmpty) {
+        points.add(Point.vec2cb(
+            supportPoints[supportPoints.length - 1].dx.toInt(),
+            supportPoints[supportPoints.length - 1].dy.toInt(),
+            Colors.blueAccent, 10));
+      }
+    }
+  }
+
+  @override
+  void paint(List<Point> points, Arguments arguments) {
+    List<Offset> args = arguments.get("points");
+
+    if (args.isNotEmpty) {
+      points.addAll(getGrahamShell(args)[0]);
     }
   }
 }
 
+class JarvisTool implements ToolBehaviour {
+  @override
+  void supportPaint(List<Point> points, Arguments arguments) {
+    if (arguments.get("cycled")) {
+      List<Offset> supportPoints = arguments.get("points");
+      for (int i = 0; i < supportPoints.length; i ++) {
+        if (i != supportPoints.length - 1) {
+          points.add(Point.vec2cb(
+              supportPoints[i].dx.toInt(), supportPoints[i].dy.toInt(),
+              Colors.redAccent, 10));
+        } else {
+          points.add(Point.vec2cb(
+              supportPoints[i].dx.toInt(), supportPoints[i].dy.toInt(),
+              Colors.blueAccent, 10));
+        }
+      }
+
+      if (supportPoints.isNotEmpty) {
+        points.add(Point.vec2cb(
+            supportPoints[supportPoints.length - 1].dx.toInt(),
+            supportPoints[supportPoints.length - 1].dy.toInt(),
+            Colors.blueAccent, 10));
+      }
+    }
+  }
+
+  @override
+  void paint(List<Point> points, Arguments arguments) {
+    List<Offset> args = arguments.get("points");
+
+    if (args.isNotEmpty) {
+      points.addAll(getJarvisShell(args)[0]);
+    }
+  }
+}
+
+class IntersectionLineTool implements ToolBehaviour {
+  @override
+  void supportPaint(List<Point> points, Arguments arguments) {
+    // if (arguments.get("cycled")) {
+    //   List<Offset> supportPoints = arguments.get("points");
+    //   for (int i = 0; i < supportPoints.length; i ++) {
+    //     if (i != supportPoints.length - 1) {
+    //       points.add(Point.vec2cb(
+    //           supportPoints[i].dx.toInt(), supportPoints[i].dy.toInt(),
+    //           Colors.redAccent, 10));
+    //     } else {
+    //       points.add(Point.vec2cb(
+    //           supportPoints[i].dx.toInt(), supportPoints[i].dy.toInt(),
+    //           Colors.blueAccent, 10));
+    //     }
+    //   }
+    //
+    //   if (supportPoints.isNotEmpty) {
+    //     points.add(Point.vec2cb(
+    //         supportPoints[supportPoints.length - 1].dx.toInt(),
+    //         supportPoints[supportPoints.length - 1].dy.toInt(),
+    //         Colors.blueAccent, 10));
+    //   }
+    // }
+  }
+
+  @override
+  void paint(List<Point> points, Arguments arguments) {
+    Offset start = arguments.get("start");
+    Offset end = arguments.get("end");
+
+    points.addAll(getIntersectionLine(start, end));
+  }
+}
+
+class IndicatorPointTool implements ToolBehaviour {
+  @override
+  void supportPaint(List<Point> points, Arguments arguments) {
+  }
+
+  @override
+  void paint(List<Point> points, Arguments arguments) {
+    Offset start = arguments.get("start");
+    points.addAll(getIndicatorPoint(start));
+  }
+}
+
+class FillWithOrderedEdgesTool implements ToolBehaviour {
+  @override
+  void supportPaint(List<Point> points, Arguments arguments) {
+  }
+
+  @override
+  void paint(List<Point> points, Arguments arguments) {
+    Offset start = arguments.get("start");
+
+    List<Polygon> polygons = PolygonPoll.getInstance().getPoll();
+
+    for (Polygon poly in polygons) {
+      if (isInPolygon(poly, start)) {
+        points.addAll(getFillWithOrderedEdges(start));
+        break;
+      }
+    }
+  }
+}

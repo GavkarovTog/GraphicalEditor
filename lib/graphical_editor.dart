@@ -36,6 +36,13 @@ class _GraphicalEditorAppState extends State<GraphicalEditorApp> {
       ToolInfo("Эрмита", ErmitTool(), RectangularInputWithTwoSupportVectors()),
       ToolInfo("Безье", BezierTool(), RectangularInputWithTwoSupportPoints()),
       ToolInfo("B-сплайн", BSplineTool(), MultigonalInput()),
+    ],
+    "Полигоны": [
+      ToolInfo("Грэхэма", GrahamTool(), MultigonalInput(isGraham: true)),
+      ToolInfo("Джарвиса", JarvisTool(), MultigonalInput(isJarvis: true)),
+      ToolInfo("Пересечение", IntersectionLineTool(), RectangularInput()),
+      ToolInfo("Принадлежность", IndicatorPointTool(), SinglePointInput()),
+      ToolInfo("Закрашивание(уп. ребра)", FillWithOrderedEdgesTool(), SinglePointInput()),
     ]
   });
   ToolHistory toolUsageHistory = ToolHistory();
@@ -72,6 +79,7 @@ class _GraphicalEditorAppState extends State<GraphicalEditorApp> {
                   onPressed: () {
                     setState(() {
                       toolUsageHistory.reset();
+                      PolygonPoll.getInstance().reset();
                     });
                   },
                   icon: Icon(Icons.cleaning_services_outlined,

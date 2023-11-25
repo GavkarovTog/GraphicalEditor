@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:graphical_editor/graphical_editor_painter.dart';
 import 'package:graphical_editor/utils/arguments.dart';
+import 'package:graphical_editor/utils/graphical_algorithms.dart';
 import 'package:graphical_editor/utils/tool_history.dart';
 import 'package:graphical_editor/utils/tools.dart';
 import 'package:graphical_editor/utils/utils.dart';
@@ -58,6 +59,20 @@ class _DrawingInputManagerState extends State<DrawingInputManager> {
                 widget.currentTool.inputMethod.onInputEnd(details);
                 if (widget.currentTool.inputMethod.isReady) {
                   widget.history.add(widget.currentTool);
+
+                  if (widget.currentTool.inputMethod.isPolygon) {
+                    PolygonPoll poll = PolygonPoll.getInstance();
+
+                    List<Offset> pts = widget.currentTool.inputMethod.arguments.get("points");
+                    if (widget.currentTool.inputMethod.isGraham) {
+                      if (pts.isNotEmpty) {
+                        poll.addPolygon(Polygon(getGrahamShell(pts)[1]));
+                      }
+                    } else {
+                      poll.addPolygon(Polygon(getJarvisShell(pts)[1]));
+                    }
+                  }
+
                   widget.currentTool.inputMethod =
                       widget.currentTool.inputMethod.reset();
                 }

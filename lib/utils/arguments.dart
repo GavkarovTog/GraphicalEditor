@@ -5,6 +5,9 @@ abstract class ArgumentsInputBehaviour {
   Arguments arguments = Arguments();
   bool isReady = false;
   bool isCycled = false;
+  bool isPolygon = false;
+  bool isJarvis = false;
+  bool isGraham = false;
 
   void onInputStart(DragStartDetails details);
   void onInputUpdate(DragUpdateDetails details);
@@ -172,11 +175,39 @@ class RectangularInputWithTwoSupportPoints extends RectangularInput {
   }
 }
 
+class SinglePointInput extends ArgumentsInputBehaviour {
+  SinglePointInput() {
+    arguments.set("start", Offset(-10, -10));
+  }
+
+  @override
+  void onInputStart(DragStartDetails details) {
+    arguments.set("start", Offset(details.localPosition.dx, details.localPosition.dy));
+  }
+
+  @override
+  void onInputUpdate(DragUpdateDetails details) {
+  }
+
+  @override
+  void onInputEnd(DragEndDetails details) {
+    super.isReady = true;
+  }
+
+  @override
+  ArgumentsInputBehaviour reset() {
+    return SinglePointInput();
+  }
+}
+
 class MultigonalInput extends RectangularInput {
   List<Offset> points = [];
   Offset currentPoint = Offset(0, 0);
 
-  MultigonalInput() : super() {
+  MultigonalInput({bool isGraham = false, bool isJarvis = false}) : super() {
+    super.isPolygon = isGraham || isJarvis;
+    super.isGraham = isGraham;
+    super.isJarvis = isJarvis;
     arguments.set("points", points);
     arguments.set("cycled", true);
     arguments.set("closured", false);
@@ -196,6 +227,10 @@ class MultigonalInput extends RectangularInput {
         arguments.set("cycled", false);
         toAddPoint = false;
         isReady = true;
+
+        if (isReady) {
+          arguments.set("ready", true);
+        }
 
         if (point != points[points.length - 1]) {
           arguments.set("closured", true);
@@ -227,7 +262,7 @@ class MultigonalInput extends RectangularInput {
 
   @override
   ArgumentsInputBehaviour reset() {
-    return MultigonalInput();
+    return MultigonalInput(isGraham: super.isGraham, isJarvis: super.isJarvis);
   }
 }
 
