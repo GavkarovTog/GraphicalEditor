@@ -43,6 +43,7 @@ class _GraphicalEditorAppState extends State<GraphicalEditorApp> {
       ToolInfo("Пересечение", IntersectionLineTool(), RectangularInput()),
       ToolInfo("Принадлежность", IndicatorPointTool(), SinglePointInput()),
       ToolInfo("Закрашивание(уп. ребра)", FillWithOrderedEdgesTool(), SinglePointInput()),
+      ToolInfo("Закрашивание(затравка)", FillWithPoint(), SinglePointInput()),
     ]
   });
   ToolHistory toolUsageHistory = ToolHistory();

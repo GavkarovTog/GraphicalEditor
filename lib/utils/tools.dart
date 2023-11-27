@@ -316,3 +316,23 @@ class FillWithOrderedEdgesTool implements ToolBehaviour {
     }
   }
 }
+
+class FillWithPoint implements ToolBehaviour {
+  @override
+  void supportPaint(List<Point> points, Arguments arguments) {
+  }
+
+  @override
+  void paint(List<Point> points, Arguments arguments) {
+    Offset start = arguments.get("start");
+
+    List<Polygon> polygons = PolygonPoll.getInstance().getPoll();
+
+    for (Polygon poly in polygons) {
+      if (isInPolygon(poly, start)) {
+        points.addAll(getFillByPoint(start));
+        break;
+      }
+    }
+  }
+}

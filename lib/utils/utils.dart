@@ -24,6 +24,14 @@ class Point {
 
   Point.vec3(this.x, this.y, this.z, this.color);
 
+  bool operator ==(Object oth) {
+    if (oth is Point) {
+      return x == oth.x && y == oth.y;
+    }
+
+    throw UnimplementedError("Can't compare with different object type.");
+  }
+
   Offset getOffset() => Offset(x.toDouble(), y.toDouble());
 
   Color getColor() => color;
@@ -32,6 +40,9 @@ class Point {
   String toString() {
     return "Point($x, $y)";
   }
+
+  @override
+  int get hashCode => Object.hash(x, y);
 }
 
 class PolygonPoll {

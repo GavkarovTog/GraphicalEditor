@@ -1,4 +1,6 @@
+import 'dart:collection';
 import 'dart:math';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:graphical_editor/utils/utils.dart';
 
@@ -960,12 +962,96 @@ List<Point> getIndicatorPoint(Offset start) {
 
 List<Point> getFillWithOrderedEdges(Offset start) {
   List<Polygon> polygons = PolygonPoll.getInstance().getPoll();
+  print(polygons.length);
 
   int selectedPoly = 0;
   for (Polygon poly in polygons) {
     if (isInPolygon(poly, start)) {
       break;
     }
+
+    selectedPoly ++;
+  }
+
+  if (selectedPoly == polygons.length) {
+    return [];
+  }
+
+  Polygon polygon = polygons[selectedPoly];
+
+  List<Offset> vertices = polygon.vertices;
+
+  int? maxY;
+  int? minY;
+  for (Offset vertex in vertices) {
+    int vertexY = vertex.dy.toInt();
+
+    if (maxY == null && minY == null) {
+      maxY = vertexY;
+      minY = vertexY;
+      continue;
+    }
+
+    if (maxY! < vertexY) {
+      maxY = vertexY;
+    }
+
+    if (minY! > vertexY) {
+      minY = vertexY;
+    }
+  }
+  // vertices.sort((fst, snd) => (fst.dy - snd.dy).toInt());
+  List<Point> edgesPoints = [];
+  for (int i = 0; i < vertices.length; i ++) {
+    edgesPoints.addAll(
+        getLineDDAPoints(vertices[i], vertices[(i + 1) % vertices.length])
+    );
+  }
+
+  List<Point> result = [];
+  for (int i = minY!; i < maxY!; i ++) {
+    List<Point> scanningRow = getLineDDAPoints(Offset(start.dx - 500, i.toDouble()), Offset(start.dx + 500, i.toDouble()));
+    List<Offset> intersections = [];
+    for (Point scanPoint in scanningRow) {
+      for (Point edgePoint in edgesPoints) {
+        if (scanPoint.x == edgePoint.x && scanPoint.y == edgePoint.y) {
+          intersections.add(Offset(scanPoint.x.toDouble(), scanPoint.y.toDouble()));
+        }
+      }
+    }
+
+    // print("int: $intersections");
+    // break;
+
+    // for (int i = 1; i < intersections.length; i ++) {
+    //   result.addAll(
+    //       getLineDDAPoints(intersections[i - 1], intersections[i])
+    //   );
+    // }
+
+    if (intersections.isNotEmpty) {
+      result.addAll(
+          getLineDDAPoints(intersections.first, intersections.last)
+      );
+      result.addAll(
+          getLineDDAPoints(intersections.first, intersections.last)
+      );
+    }
+  }
+
+  return result;
+}
+
+List<Point> getFillByPoint(Offset start) {
+  List<Polygon> polygons = PolygonPoll.getInstance().getPoll();
+
+  int selectedPoly = 0;
+  for (Polygon poly in polygons) {
+    if (isInPolygon(poly, start)) {
+      break;
+    }
+
+    selectedPoly ++;
   }
 
   if (selectedPoly == polygons.length) {
@@ -974,80 +1060,31 @@ List<Point> getFillWithOrderedEdges(Offset start) {
 
   Polygon polygon = polygons[selectedPoly];
   List<Offset> vertices = polygon.vertices;
-  vertices.sort((fst, snd) => (fst.dy - snd.dy).toInt());
-
-  List<List<Point>> scanningRows = [];
-  for (int i = vertices[0].dy.toInt(); i < vertices.last.dy.toInt(); i ++) {
-    scanningRows.add(getLineDDAPoints(Offset(start.dx + 1000, i.toDouble()), Offset(start.dx - 1000, i.toDouble())));
-  }
-
-
-  List<Offset> visitedVertices = [];
-  List<Offset> intersections = [];
+  List<Point> edgesPoints = [];
   for (int i = 0; i < vertices.length; i ++) {
-    Offset previousVertex = vertices[i > 0 ? (i - 1) : vertices.length - 1];
-    Offset currentVertex = vertices[i];
-    Offset nextVertex = vertices[(i + 1) % vertices.length];
-
-    bool local = false;
-    if (currentVertex.dy < previousVertex.dy && currentVertex.dy < nextVertex.dy ||
-        currentVertex.dy > previousVertex.dy && currentVertex.dy > nextVertex.dy) {
-      local = true;
-    } else if (currentVertex.dy == previousVertex.dy && currentVertex.dy == nextVertex.dy) {
-      continue;
-    }
-
-    List<Point> currentEdge = getLineDDAPoints(currentVertex, nextVertex);
-
-    for (List<Point> row in scanningRows) {
-      List<Offset> rowIntersections = [];
-
-      for (Point rowPoint in row) {
-        for (Point edgePoint in currentEdge) {
-          if (rowPoint.x == edgePoint.x && rowPoint.y == edgePoint.y) {
-            if (!local && (edgePoint.x == currentVertex.dx && edgePoint.y == currentVertex.dy
-                || edgePoint.x == nextVertex.dx && edgePoint.y == nextVertex.dy))
-             {
-              if (visitedVertices.contains(Offset(edgePoint.x.toDouble(), edgePoint.y.toDouble()))) {
-                continue;
-              }
-
-              visitedVertices.add(Offset(edgePoint.x.toDouble(), edgePoint.y.toDouble()));
-            }
-
-            rowIntersections.add(Offset(rowPoint.x.toDouble(), rowPoint.y.toDouble()));
-          }
-        }
-      }
-
-      if (rowIntersections.length != 1) {
-        intersections.addAll(rowIntersections);
-      }
-    }
-  }
-
-  intersections.sort(
-      (fst, snd) {
-        if (fst.dy < snd.dy || fst.dy == snd.dy && fst.dx <= snd.dx) {
-          return -1;
-        }
-
-        return 1;
-      }
-  );
-
-
-  List<List<Offset>> intervals = [];
-  for (int i = 2; i <= intersections.length; i ++) {
-    intervals.add(
-      [intersections[i - 2], intersections[i - 1]]
+    edgesPoints.addAll(
+        getLineDDAPoints(vertices[i], vertices[(i + 1) % vertices.length])
     );
   }
+
   List<Point> result = [];
-  for (List<Offset> interval in intervals) {
-    result.addAll(
-      getLineDDAPoints(interval[0], interval[1])
-    );
+  Queue<Point> frontier = Queue();
+  frontier.addLast(Point.vec2b(start.dx.toInt(), start.dy.toInt()));
+  List<Offset> directions = [
+    Offset(0, 1), Offset(1, 0),
+    Offset(0, -1), Offset(-1, 0),
+  ];
+  while (frontier.isNotEmpty) {
+    Point currentPoint = frontier.removeLast();
+    result.add(currentPoint);
+
+    for (Offset direction in directions) {
+      Point newPoint = Point.vec2b(currentPoint.x + direction.dx.toInt(), currentPoint.y + direction.dy.toInt());
+      
+      if (!result.contains(newPoint) && !edgesPoints.contains(newPoint)) {
+        frontier.add(newPoint);
+      }
+    }
   }
 
   return result;
